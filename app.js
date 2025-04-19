@@ -9,6 +9,7 @@ const app = Vue.createApp({
       monsterHealth: 100,
       currentRound: 0,
       winner: null,
+      logMessages: [],
     };
   },
   computed: {
@@ -31,19 +32,15 @@ const app = Vue.createApp({
   watch: {
     playerHealth(value) {
       if (value <= 0 && this.monsterHealth <= 0) {
-        // A draw
         this.winner = "draw";
       } else if (value <= 0) {
-        // Player lost
         this.winner = "monster";
       }
     },
     monsterHealth(value) {
       if (value <= 0 && this.playerHealth <= 0) {
-        // A draw
         this.winner = "draw";
       } else if (value <= 0) {
-        // Monster lost
         this.winner = "player";
       }
     },
@@ -51,15 +48,21 @@ const app = Vue.createApp({
   methods: {
     attackMonster() {
       this.currentRound++;
-      this.monsterHealth -= getRandomValue(12, 5);
+      const attackValue = getRandomValue(12, 5);
+      this.monsterHealth -= attackValue;
+      this.addLogMessage("player", "attack", attackValue);
       this.attackPlayer();
     },
     attackPlayer() {
-      this.playerHealth -= getRandomValue(15, 8);
+      const attackValue = getRandomValue(15, 8);
+      this.playerHealth -= attackValue;
+      this.addLogMessage("monster", "attack", attackValue);
     },
     specialAttackMonster() {
       this.currentRound++;
-      this.monsterHealth -= getRandomValue(25, 10);
+      const attackValue = getRandomValue(25, 10);
+      this.monsterHealth -= attackValue;
+      this.addLogMessage("player", "special-attack", attackValue);
       this.attackPlayer();
     },
 
@@ -71,6 +74,7 @@ const app = Vue.createApp({
       } else {
         this.playerHealth += healValue;
       }
+      this.addLogMessage("player", "heal", healValue);
       this.attackPlayer();
     },
     startGame() {
@@ -78,9 +82,20 @@ const app = Vue.createApp({
       this.monsterHealth = 100;
       this.winner = null;
       this.currentRound = 0;
+      this.logMessages = [];
     },
     surrender() {
       this.winner = "monster";
+    },
+    addLogMessage(who, what, value) {
+      this.logMessages.unshift({
+        actionBy: who,
+        actionType: what,
+        actionValue: value,
+      });
+      if (this.logMessages.length > 10) {
+        this.logMessages.pop();
+      }
     },
   },
 });
